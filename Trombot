@@ -1,0 +1,19 @@
+import discord
+from discord.ext import commands, tasks
+from discord import embeds
+from discord import message
+import random
+import asyncio
+trombot = commands.Bot(command_prefix="!", description="Trombot The 1st est dans la place.")
+@trombot.event
+async def on_ready():
+    print("Limule on the road.")
+    cpstatus.start()
+status = ["Être the First",
+        "Choisir entre Vivi et Limule",
+        "Farm les artéfacts de Hu Tao sur Genshin",
+        "Se réincarner en Slime"]
+@tasks.loop(seconds=30)
+async def cpstatus():
+    game=discord.Game(random.choice(status))
+    await trombot.change_presence(status=discord.Status.online, activity=game)
