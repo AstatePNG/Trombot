@@ -151,7 +151,8 @@ async def ban(self,ctx,member:discord.Member,*,reason=None):
 async def ban_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("Hu Tao n'a pas entendu ton appel à l'au-delà. N'essaye pas d'outre-passer la hiérarchie.")
-
+        await ctx.send("https://tenor.com/bFBT9.gif")
+        
 @trombot.command()
 @commands.has_permissions(ban_members=True)
 async def unban(self,ctx,member:discord.Member,*,reason=None):
