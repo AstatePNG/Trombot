@@ -39,7 +39,7 @@ async def help(ctx,mode="normal"):
         em.add_field(name="Interaction",value="``cookie``, ``kill``",inline=False)
         em.add_field(name="Rigolade",value="``sncf``, ``poll``, ``kaijvu``",inline=False)
         em.add_field(name="Références au Twitch",value="``renjiro``, ``limuri``, ``triggered``",inline=False)
-        em.add_field(name="Modération",value="``clear``",inline=False)
+        em.add_field(name="Modération",value="``clear``, ``ban``",inline=False)
         await ctx.send(embed=em)
     elif mode=="help":
         em=discord.Embed(title="Help",description="Montre la liste des commandes *ou* décrit le fonctionnement d'une commande.",color=7394047)
@@ -84,6 +84,10 @@ async def help(ctx,mode="normal"):
         em=discord.Embed(title="Renjiro",description="Tes PV vont disparaître, dis adieu à la vie.",color=7394047)
         em.add_field(name="Alias",value=f"``{trombot.command_prefix}rj``, ``{trombot.command_prefix}renjiro``",inline=False)
         em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}renjiro``",inline=False)
+        await ctx.send(embed=em)
+    elif mode=="ban":
+        em=discord.Embed(title="Ban",description="Banni un utilisateur du serveur.",color=7394047)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}ban <@membre> [raison]``")
         await ctx.send(embed=em)
     else:
         await ctx.send("Réécris la commande correctement sinon **J'VAIS T'GOUMER LÀ** !")
@@ -143,7 +147,7 @@ async def clear_error(ctx, error):
 
 @trombot.command()
 @commands.has_permissions(ban_members=True)
-async def ban(self,ctx,member:discord.Member,*,reason=None):
+async def ban(ctx,member:discord.Member,*,reason=None):
     await member.ban(reason=reason)
     await ctx.send(f"Hu Tao et **{ctx.message.author.name}** ont accompagné {member.mention} dans l'au-delà, il ne pourra plus rejoindre ce serveur.")
     await ctx.send("https://tenor.com/view/hu-tao-genshin-impact-genshin-impact-hu-tao-hu-tao-dance-gif-23101290")
@@ -154,13 +158,18 @@ async def ban_error(ctx, error):
 
 @trombot.command()
 @commands.has_permissions(ban_members=True)
-async def unban(self,ctx,member:discord.Member,*,reason=None):
-     banned_users = await ctx.guild.bans()
-     member_name, member_discriminator = member.split("#")
-        for ban_entry in banned_users:
-            user = ban_entry.user
-            if (user.name, user.discriminator) == (member_name, member_discriminator):
-                await ctx.guild.unban(user)
-                await ctx.send(f"{user.mention} semble avoir rencontré Truck-kun et non Hu Tao. Il s'est réincarné en Limule !")
-                await ctx.send("")
-                return
+async def unban(ctx, *, member:discord.Member,reason=None):
+    banned_users = await ctx.guild.bans()
+    member.member_name, member.member_discriminator = member.split("#")
+
+    for ban_entry in banned_users:
+        user = ban_entry.user
+        if (user.name, user.discriminator) == (member.member_name, member.member_discriminator):
+            await ctx.guild.unban(user,reason=reason)
+            await ctx.send(f"{user.mention} semble avoir rencontré Truck-kun et non Hu Tao. Il s'est réincarné en Limule !")
+            await ctx.send("https://c.tenor.com/I37tFK1CaDwAAAAC/that-time-i-got-reincarnated-as-a-slime-rimuru.gif")
+            return
+@unban.error
+async def unban_error(ctx,error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("N'essaye pas d'outre-passer la hiérarchie pour invoquer des camions.")
