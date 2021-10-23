@@ -1,19 +1,166 @@
 import discord
+from discord import channel
+from discord import member
 from discord.ext import commands, tasks
 from discord import embeds
 from discord import message
 import random
 import asyncio
-trombot = commands.Bot(command_prefix="!", description="Trombot The 1st est dans la place.")
+
+
+trombot = commands.Bot(command_prefix="$", description="Trombot The 1st est dans la place.")
+trombot.remove_command("help")
+
+
+cookies=["https://c.tenor.com/1uZ2QLZeWQoAAAAC/nom-anime.gif","https://c.tenor.com/zluE5zNOkOkAAAAC/cute-eating.gif","https://c.tenor.com/rEx8468XVocAAAAC/anime-food.gif","https://c.tenor.com/J7f31OFMDFYAAAAC/anime-cookie.gif","https://c.tenor.com/45eglhkpWRoAAAAd/one-piece-carrot.gif","https://c.tenor.com/bBRCCeAYPU8AAAAC/cookie-mashiro.gif","https://c.tenor.com/g-WBixuZUnsAAAAC/anime-animegirl.gif","https://c.tenor.com/zEWVjcnOt1IAAAAC/anime-eating.gif"]
+selfmort=["https://c.tenor.com/pM38Ryi6yRYAAAAC/noragomi.gif","https://c.tenor.com/r2NG3OuR7c8AAAAC/anime-vegetables.gif","https://c.tenor.com/CetnCMrSaEIAAAAC/ruru-suicide-show.gif"]
+mort=["https://c.tenor.com/FpCsR78Irs0AAAAC/91days-angelo-lagusa.gif","https://c.tenor.com/VbJZVpft8pUAAAAC/fate-grand-order-babylonia.gif","https://c.tenor.com/xAwZBtBnBr4AAAAC/astolfo-trap-of-argalia.gif","https://c.tenor.com/1ybUFYQpNDgAAAAC/death-note-light-yagami.gif","https://c.tenor.com/CHMT9obzVEEAAAAC/tensei-shitara-slime-datta-ken-that-time-i-got-reincarnated-as-a-slime.gif","https://c.tenor.com/Ze50E1rW44UAAAAC/akudama-drive.gif","https://c.tenor.com/_lIIhhr5E_sAAAAC/megumin-kono-suba-gods-blessing-on-this-wonderful-world.gif","https://c.tenor.com/-UbmVOLixPcAAAAC/killing-anime-girl.gif"]
+jinglesncf=["https://cdn.discordapp.com/attachments/900869947050295336/901253663178244146/oubli.mp4","https://cdn.discordapp.com/attachments/900869947050295336/901246881177419776/daronnage.mp4","https://cdn.discordapp.com/attachments/900869947050295336/900878676520996904/debat.mp4"]
+reponses=["Ça me parait évident en fait","J'en sais rien moi, je connais que Limule et Vivi dans la vie","Est-ce que j'ai fini de build ma Hu Tao décemment ? Tu as ta réponse.","Demande plutôt à BarnaB, c'est pas mon problème ça.","Tu veux pas aller boire de la potion de Konoha au lieu de me poser des questions ?","Alors par contre déso, mais je te réponds plus tard, là j'ai la crémaillère de mon meilleur pote et j'avais oublié *ahah*.","Essaye de trouver la puissance de Teppei pour voir si ça t'aide.","Je sais pas, mais **ACHÈTE UNE FIGURINE DE LIMULE** !"]
+tanjiku=["https://media.discordapp.net/attachments/779498004880162836/901549689764196422/tobecontinued.png","https://media.discordapp.net/attachments/779498004880162836/901549997995196436/tobecontinued.png"]
+
+
 @trombot.event
 async def on_ready():
     print("Limule on the road.")
     cpstatus.start()
-status = ["Être the First",
-        "Choisir entre Vivi et Limule",
-        "Farm les artéfacts de Hu Tao sur Genshin",
-        "Se réincarner en Slime"]
+status=["Être the First","Choisir entre Vivi et Limule","Farm les artéfacts de Hu Tao sur Genshin","Se réincarner en Slime"]
 @tasks.loop(seconds=30)
 async def cpstatus():
     game=discord.Game(random.choice(status))
     await trombot.change_presence(status=discord.Status.online, activity=game)
+
+
+@trombot.command()
+async def help(ctx,mode="normal"):
+    if mode=="normal":
+        em=discord.Embed(title="Liste des commandes",description=f"Pour connaître toutes les commandes sur le bout des doigts. Le préfix du bot est {trombot.command_prefix}.",color=7394047)
+        em.add_field(name="Aide",value="``help``",inline=False)
+        em.add_field(name="Interaction",value="``cookie``, ``kill``",inline=False)
+        em.add_field(name="Rigolade",value="``sncf``, ``poll``, ``kaijvu``",inline=False)
+        em.add_field(name="Références au Twitch",value="``renjiro``, ``limuri``, ``triggered``",inline=False)
+        em.add_field(name="Modération",value="``clear``",inline=False)
+        await ctx.send(embed=em)
+    elif mode=="help":
+        em=discord.Embed(title="Help",description="Montre la liste des commandes *ou* décrit le fonctionnement d'une commande.",color=7394047)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}help`` *ou* ``{trombot.command_prefix}help <command>``")
+        await ctx.send(embed=em)
+    elif mode=="cookie":
+        em=discord.Embed(title="Cookie",description="Donne un cookie à quelqu'un.",color=7394047)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}cookie <@membre>``")
+        await ctx.send(embed=em)
+    elif mode=="kill":
+        em=discord.Embed(title="Kill",description="Tue quelqu'un.",color=7394047)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}kill <@membre>``")
+        await ctx.send(embed=em)
+    elif mode=="sncf":
+        em=discord.Embed(title="SNCF",description="Lance un Jingle SNCF aléatoire.",color=7394047)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}sncf``")
+        await ctx.send(embed=em)
+    elif mode=="poll":
+        em=discord.Embed(title="Poll",description="Trombot répond à la question que tu lui pose.",color=7394047)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}poll <question>``")
+        await ctx.send(embed=em)
+    elif mode=="kaijvu":
+        em=discord.Embed(title="Kaijvu",description="Lave-toi les yeux histoire d'être sûr.",color=7394047)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}kaijvu``")
+        await ctx.send(embed=em)
+    elif mode=="limuri" or mode=="lr":
+        em=discord.Embed(title="Limuri",description="Limule vient rire dans le chat, parce qu'on est avant tout là pour la DÉCONNE !",color=7394047)
+        em.add_field(name="Alias",value=f"``{trombot.command_prefix}lr``, ``{trombot.command_prefix}limuri``",inline=False)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}limuri``",inline=False)
+        await ctx.send(embed=em)
+    elif mode=="clear" or mode=="purge" or mode=="bbb":
+        em=discord.Embed(title="Clear",description="Trombot vient nettoyer les conversations ! (La valeur du clear par défaut est de 5)",color=7394047)
+        em.add_field(name="Alias",value=f"``{trombot.command_prefix}purge``, ``{trombot.command_prefix}clear``, ``{trombot.command_prefix}bbb``",inline=False)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}clear [nombre de messages à effacer]``",inline=False)
+        await ctx.send(embed=em)
+    elif mode=="triggered" or mode=="gkn":
+        em=discord.Embed(title="Triggered",description="Fait de ton mieux, s'il te plaît !",color=7394047)
+        em.add_field(name="Alias",value=f"``{trombot.command_prefix}gkn``, ``{trombot.command_prefix}triggered``",inline=False)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}triggered``",inline=False)
+        await ctx.send(embed=em)
+    elif mode=="renjiro" or mode=="rj":
+        em=discord.Embed(title="Renjiro",description="Tes PV vont disparaître, dis adieu à la vie.",color=7394047)
+        em.add_field(name="Alias",value=f"``{trombot.command_prefix}rj``, ``{trombot.command_prefix}renjiro``",inline=False)
+        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}renjiro``",inline=False)
+        await ctx.send(embed=em)
+    else:
+        await ctx.send("Réécris la commande correctement sinon **J'VAIS T'GOUMER LÀ** !")
+
+
+@trombot.command()
+async def cookie(ctx,user:discord.User):
+    await ctx.send(f"**{ctx.message.author.name}** vient de donner un cookie à {user.mention}")
+    await ctx.send(random.choice(cookies))
+@trombot.command()
+async def kill(ctx,user:discord.User):
+    if user==ctx.message.author:
+        await ctx.send(f"**{ctx.message.author.name}** essaye de se suicider.")
+        await ctx.send(random.choice(selfmort))
+    else:
+        await ctx.send(f"**{ctx.message.author.name}** a essayé d'assassiner {user.mention}")
+        await ctx.send(random.choice(mort))
+
+
+@trombot.command()
+async def sncf(ctx):
+    await ctx.send(random.choice(jinglesncf))
+@trombot.command()
+async def poll(ctx,mode="normal"):
+    if mode=="normal":
+        await ctx.send("TU DOIS POSER UNE QUESTION LÀ, PAS ME REGARDER !")
+    else:
+        await ctx.send(random.choice(reponses))
+@trombot.command()
+async def kaijvu(ctx):
+    await ctx.send("Attend chakal, je pense que j'ai pas bien vu là, laisse moi me laver les yeux vite fait pour être sûr <a:ThumbsUp:901113202530713601>")
+    await ctx.send("https://tenor.com/view/must-unsee-spongebob-washing-eyes-cant-look-gif-14237119")
+
+
+@trombot.command(aliases=['lr'])
+async def limuri(ctx):
+    await ctx.send("https://c.tenor.com/SdhYgrUfIIEAAAAC/rimuru-tempest-laughing.gif")
+@trombot.command(aliases=['gkn'])
+async def triggered(ctx):
+    await ctx.send("Gambatte Kudasai Ne \n がんばってください ね")
+    await ctx.send("https://cdn.discordapp.com/attachments/880189018086727764/901466819175526430/trigger.gif")
+@trombot.command(aliases=['rj'])
+async def renjiro(ctx):
+    await ctx.send("J'VAIS T'BRISER LES OS, J'VAIS T'BOIRE TON SANG !")
+    await ctx.send(random.choice(tanjiku))
+
+
+@trombot.command(aliases=['purge','bbb'])
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx, amount=5):
+    await ctx.channel.purge(limit=amount+1)
+    await ctx.send(f"BOOM BOOM BAKUDAN ! \n KLEE a EXPLOSÉ {amount} messages ! \n https://c.tenor.com/2W8NkLvBiSEAAAAC/klee.gif", delete_after=5)
+@clear.error
+async def clear_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("Tu n'as pas la puissance de Teppei en toi, le BOOM BOOM BAKUDAN ne t'es pas accessible !")
+
+@trombot.command()
+@commands.has_permissions(ban_members=True)
+async def ban(self,ctx,member:discord.Member,*,reason=None):
+    await member.ban(reason=reason)
+    await ctx.send(f"Hu Tao et **{ctx.message.author.name}** ont accompagné {member.mention} dans l'au-delà, il ne pourra plus rejoindre ce serveur.")
+    await ctx.send("https://tenor.com/view/hu-tao-genshin-impact-genshin-impact-hu-tao-hu-tao-dance-gif-23101290")
+@ban.error
+async def ban_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("Hu Tao n'a pas entendu ton appel à l'au-delà. N'essaye pas d'outre-passer la hiérarchie.")
+
+@trombot.command()
+@commands.has_permissions(ban_members=True)
+async def unban(self,ctx,member:discord.Member,*,reason=None):
+     banned_users = await ctx.guild.bans()
+     member_name, member_discriminator = member.split("#")
+        for ban_entry in banned_users:
+            user = ban_entry.user
+            if (user.name, user.discriminator) == (member_name, member_discriminator):
+                await ctx.guild.unban(user)
+                await ctx.send(f"{user.mention} semble avoir rencontré Truck-kun et non Hu Tao. Il s'est réincarné en Limule !")
+                await ctx.send("")
+                return
