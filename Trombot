@@ -162,5 +162,5 @@ async def unban(self,ctx,member:discord.Member,*,reason=None):
             if (user.name, user.discriminator) == (member_name, member_discriminator):
                 await ctx.guild.unban(user)
                 await ctx.send(f"{user.mention} semble avoir rencontré Truck-kun et non Hu Tao. Il s'est réincarné en Limule !")
-                await ctx.send("")
+                await ctx.send("https://c.tenor.com/I37tFK1CaDwAAAAC/that-time-i-got-reincarnated-as-a-slime-rimuru.gif")
                 return
