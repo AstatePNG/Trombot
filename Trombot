@@ -143,7 +143,7 @@ async def clear_error(ctx, error):
 
 @trombot.command()
 @commands.has_permissions(ban_members=True)
-async def ban(self,ctx,member:discord.Member,*,reason=None):
+async def ban(ctx,member:discord.Member,*,reason=None):
     await member.ban(reason=reason)
     await ctx.send(f"Hu Tao et **{ctx.message.author.name}** ont accompagné {member.mention} dans l'au-delà, il ne pourra plus rejoindre ce serveur.")
     await ctx.send("https://tenor.com/view/hu-tao-genshin-impact-genshin-impact-hu-tao-hu-tao-dance-gif-23101290")
@@ -154,13 +154,18 @@ async def ban_error(ctx, error):
 
 @trombot.command()
 @commands.has_permissions(ban_members=True)
-async def unban(self,ctx,member:discord.Member,*,reason=None):
-     banned_users = await ctx.guild.bans()
-     member_name, member_discriminator = member.split("#")
-        for ban_entry in banned_users:
-            user = ban_entry.user
-            if (user.name, user.discriminator) == (member_name, member_discriminator):
-                await ctx.guild.unban(user)
-                await ctx.send(f"{user.mention} semble avoir rencontré Truck-kun et non Hu Tao. Il s'est réincarné en Limule !")
-                await ctx.send("")
-                return
+async def unban(ctx, *, member:discord.Member,reason=None):
+    banned_users = await ctx.guild.bans()
+    member_name, member_discriminator = member.split("#")
+
+    for ban_entry in banned_users:
+        user = ban_entry.user
+        if (user.name, user.discriminator) == (member_name, member_discriminator):
+            await ctx.guild.unban(user,reason=reason)
+            await ctx.send(f"{user.mention} semble avoir rencontré Truck-kun et non Hu Tao. Il s'est réincarné en Limule !")
+            await ctx.send("https://c.tenor.com/I37tFK1CaDwAAAAC/that-time-i-got-reincarnated-as-a-slime-rimuru.gif")
+            return
+@unban.error
+async def unban_error(ctx,error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("N'essaye pas d'outre-passer la hiérarchie pour invoquer des camions.")
