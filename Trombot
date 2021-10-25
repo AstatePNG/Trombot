@@ -1,16 +1,7 @@
 import re
-import datetime
-from re import search
 import discord
-from discord import channel
-from discord import member
-from discord import guild
-from discord import Color
-from discord import client
-from discord.errors import NotFound
+from discord.errors import Forbidden, NotFound
 from discord.ext import commands, tasks
-from discord import embeds
-from discord import message
 import random
 import asyncio
 from discord.ext.commands.converter import Converter, Greedy
@@ -34,21 +25,18 @@ hugging=["https://c.tenor.com/Qw4m3inaSZYAAAAC/crying-anime-kyoukai-no-kanata-hu
 limuletempest=["https://c.tenor.com/hDFxr_ocN4EAAAAS/tensei-shitara-slime-datta-ken-slime-question-mark.gif","https://c.tenor.com/KjUlGo_ETSMAAAAC/rimuru-slime-anime.gif","https://c.tenor.com/TOQQDjMB3eoAAAAC/tensei-shitara-slime-datta-ken-rimuru.gif","https://c.tenor.com/WCZtJjVk_9AAAAAC/qxwaii-kawaii.gif","https://c.tenor.com/1wP5udaGnRwAAAAC/qxwaii-kawaii.gif","https://c.tenor.com/i_Hd_QrEw4IAAAAC/goodbye-bye.gif","https://c.tenor.com/d8vq5hthkAoAAAAC/rimuru-tempest-rimuru.gif","https://c.tenor.com/5Bh7cvnFxjcAAAAC/rimuru-rimuru-tempest.gif","https://c.tenor.com/HyavXK4mO_wAAAAC/tensei-shitara-slime-datta-ken-huh.gif","https://c.tenor.com/KsnoWcQZ1z8AAAAC/rimuru-rimuru-tempest.gif","https://c.tenor.com/sS3tkbAF93cAAAAC/anime-black-lightning.gif"]
 forzhongli=random.randint(1,11)
 
-
-class BannedUser(Converter):
-    async def convert(self,ctx,arg):
-        if ctx.guild.me.guild_permissions.ban_members:
-            if arg.isdigit():
-                try:
-                    return (await ctx.guild.fetch_ban(Object(id=int(arg)))).user
-                except NotFound:
-                    raise BadArgument
-        banned=[e.user for e in await ctx.guild.bans()]
-        if banned:
-            if (user:=search(lambda u: str(u)==arg,banned)) is not None:
-                return user
-            else:
-                raise BadArgument
+def convert(time):
+    pos=["s","m","min","h","d"]
+    time_dict={"s":1,"m":60,"min":60,"h":3600,"d":3600*24,"j":3600*24}
+    time=str(time)
+    unit=time[-1]
+    if unit not in pos:
+        return -1
+    try:
+        val=int(time[:-1])
+    except:
+        return -2
+    return val*time_dict[unit]
 
 
 @trombot.event
@@ -62,6 +50,18 @@ async def cpstatus():
     await trombot.change_presence(status=discord.Status.online, activity=game)
 
 
+@trombot.event
+async def on_command_error(ctx,error):
+    if isinstance(error,commands.CommandNotFound):
+        await ctx.send("C'EST QUOI CETTE COMMANDE LÀ ! FAIT UN EFFORT ET REGARDE L'AIDE !",delete_after=5)
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Il manque un truc, mais je sais pas quoi ...",delete_after=5)
+    elif isinstance(error, commands.CheckFailure):
+        await ctx.send("Tu ne peux pas utiliser cette commande, rentre chez toi.",delete_after=5)
+    if isinstance(error, discord.Forbidden):
+        await ctx.send("J'ai des problèmes de permissions pour cette commande, mais c'est rien, c'est la rue ...",delete_after=10)
+
+
 @trombot.command()
 async def help(ctx,mode="normal"):
     if mode=="normal":
@@ -71,7 +71,8 @@ async def help(ctx,mode="normal"):
         em.add_field(name="Interactions",value="``cookie``, ``hi``, ``kill``, ``hug``",inline=False)
         em.add_field(name="Rigolade",value="``sncf``, ``ratp``, ``poll``, ``kaijvu``, ``zhongli``, ``limule``",inline=False)
         em.add_field(name="Références au Twitch",value="``renjiro``, ``limuri``, ``triggered``",inline=False)
-        em.add_field(name="Modération",value="``clear``, ``unmute``, ``ban``, ``unban``",inline=False)
+        if ctx.message.author.guild_permissions.manage_messages:
+            em.add_field(name="Modération",value="``clear``, ``mute``, ``unmute``, ``ban``, ``unban``",inline=False)
         await ctx.send(embed=em)
     elif mode=="help":
         em=discord.Embed(title="Help",description="Montre la liste des commandes *ou* décrit le fonctionnement d'une commande.",color=7394047)
@@ -136,10 +137,13 @@ async def help(ctx,mode="normal"):
         em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}limule``",inline=False)
         await ctx.send(embed=em)
     elif mode=="clear" or mode=="purge" or mode=="bbb":
-        em=discord.Embed(title="Clear",description="Trombot vient nettoyer les conversations ! (La valeur du clear par défaut est de 5)",color=7394047)
-        em.add_field(name="Alias",value=f"``{trombot.command_prefix}purge``, ``{trombot.command_prefix}clear``, ``{trombot.command_prefix}bbb``",inline=False)
-        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}clear [nombre de messages à effacer]``",inline=False)
-        await ctx.send(embed=em)
+        if ctx.message.author.guild_permissions.manage_messages:
+            em=discord.Embed(title="Clear",description="Trombot vient nettoyer les conversations ! (La valeur du clear par défaut est de 5)",color=7394047)
+            em.add_field(name="Alias",value=f"``{trombot.command_prefix}purge``, ``{trombot.command_prefix}clear``, ``{trombot.command_prefix}bbb``",inline=False)
+            em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}clear [nombre de messages à effacer]``",inline=False)
+            await ctx.send(embed=em)
+        else:
+            await ctx.send("Pas besoin d'aide pour une commande que tu peux pas faire !")
     elif mode=="triggered" or mode=="gkn":
         em=discord.Embed(title="Triggered",description="Fait de ton mieux, s'il te plaît !",color=7394047)
         em.add_field(name="Alias",value=f"``{trombot.command_prefix}gkn``, ``{trombot.command_prefix}triggered``",inline=False)
@@ -150,18 +154,35 @@ async def help(ctx,mode="normal"):
         em.add_field(name="Alias",value=f"``{trombot.command_prefix}rj``, ``{trombot.command_prefix}renjiro``",inline=False)
         em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}renjiro``",inline=False)
         await ctx.send(embed=em)
+    elif mode=="mute":
+        if ctx.message.author.guild_permissions.manage_roles:
+            em=discord.Embed(title="Mute",description="Enlève le droit parole à un casse-pied.",color=7394047)
+            em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}mute indéfini <@membre> [raison]`` \n``{trombot.command_prefix}mute <durée> <@membre> [raison]``")
+            em.add_field(name="Durée",value="*Valeurs acceptées :* \n``s/m/min/h/d/j``")
+            await ctx.send(embed=em)
+        else:
+            await ctx.send("Pas besoin d'aide pour une commande que tu peux pas faire !")
     elif mode=="unmute":
-        em=discord.Embed(title="Unmute",description="Rend la parole à un utilisateur muet.",color=7394047)
-        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}unmute <@membre> [raison]``")
-        await ctx.send(embed=em)
+        if ctx.message.author.guild_permissions.manage_roles:
+            em=discord.Embed(title="Unmute",description="Rend la parole à un utilisateur muet.",color=7394047)
+            em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}unmute <@membre> [raison]``")
+            await ctx.send(embed=em)
+        else:
+            await ctx.send("Pas besoin d'aide pour une commande que tu peux pas faire !")
     elif mode=="ban":
-        em=discord.Embed(title="Ban",description="Banni un utilisateur du serveur.",color=7394047)
-        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}ban <@membre> [raison]``")
-        await ctx.send(embed=em)
+        if ctx.message.author.guild_permissions.ban_members:
+            em=discord.Embed(title="Ban",description="Banni un utilisateur du serveur.",color=7394047)
+            em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}ban <@membre> [raison]``")
+            await ctx.send(embed=em)
+        else:
+            await ctx.send("Pas besoin d'aide pour une commande que tu peux pas faire !")
     elif mode=="unban":
-        em=discord.Embed(title="Unban",description="Révoque le bannissement d'un utilisateur du serveur.",color=7394047)
-        em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}unban <id du membre> [raison]``")
-        await ctx.send(embed=em)
+        if ctx.message.author.guild_permissions.ban_members:
+            em=discord.Embed(title="Unban",description="Révoque le bannissement d'un utilisateur du serveur.",color=7394047)
+            em.add_field(name="Syntaxe",value=f"``{trombot.command_prefix}unban <pseudo et discord tag du membre> [raison]``")
+            await ctx.send(embed=em)
+        else:
+            await ctx.send("Pas besoin d'aide pour une commande que tu peux pas faire !")
     else:
         await ctx.send("Réécris la commande correctement sinon **J'VAIS T'GOUMER LÀ** !")
 
@@ -287,32 +308,93 @@ async def clear(ctx, amount=5):
     await ctx.send(f"BOOM BOOM BAKUDAN ! \nKLEE a EXPLOSÉ {amount} messages ! \nhttps://c.tenor.com/2W8NkLvBiSEAAAAC/klee.gif",delete_after=5)
 @clear.error
 async def clear_error(ctx,error):
-    if isinstance(error, commands.MissingPermissions):
+    if isinstance(error,commands.MissingPermissions):
         await ctx.send("Tu n'as pas la puissance de Teppei en toi, le BOOM BOOM BAKUDAN ne t'es pas accessible !")
 @trombot.command()
 @commands.has_permissions(ban_members=True)
 async def ban(ctx,member:discord.Member,*,reason=None):
+    em=discord.Embed(title="Bannissement",description=f"Hu Tao et **{ctx.message.author.name}** ont accompagné quelqu'un dans l'au-delà, s'en est fini de {member.mention} sur le {ctx.guild.name}.",color= 0xFFFFFF)
+    if reason!=None:
+        em.add_field(name="Raison du bannissement :",value=f"*{reason}*",inline=False)
+    em.set_image(url="https://cdn.discordapp.com/attachments/900869947050295336/902303138546081862/hu-tao-genshin-impact.gif")
+    em.set_footer(text="Adieu jeune slime ...")
+    await ctx.send(embed=em)
+    await member.send(embed=em)
     await member.ban(reason=reason)
-    await ctx.send(f"Hu Tao et **{ctx.message.author.name}** ont accompagné {member.mention} dans l'au-delà, il ne pourra plus rejoindre ce serveur.")
-    await ctx.send("https://tenor.com/view/hu-tao-genshin-impact-genshin-impact-hu-tao-hu-tao-dance-gif-23101290")
 @ban.error
 async def ban_error(ctx,error):
-    if isinstance(error, commands.MissingPermissions):
+    if isinstance(error,commands.MissingPermissions):
         await ctx.send("Hu Tao n'a pas entendu ton appel à l'au-delà. N'essaye pas d'outre-passer la hiérarchie.")
 @trombot.command()
 @commands.has_permissions(ban_members=True)
-async def unban(ctx,targets:Greedy[BannedUser],reason=None):
-    for target in targets:
-        await ctx.guild.unban(target,reason=reason)
-        await ctx.send(f"{target.mention} semble avoir rencontré Truck-kun et non Hu Tao. Il s'est réincarné en Limule !")
-        await ctx.send("https://c.tenor.com/I37tFK1CaDwAAAAC/that-time-i-got-reincarnated-as-a-slime-rimuru.gif")
+async def unban(ctx,user,*,reason=None):
+    try:
+        name,id=user.split('#')
+    except ValueError:
+        await ctx.send("C'EST QUI MÊME ?")
+        return
+    bannedUsers=await ctx.guild.bans()
+    for i in bannedUsers:
+        if i.user.name==name and i.user.discriminator==id:
+            await ctx.guild.unban(i.user,reason=reason)
+            em=discord.Embed(title="Débannissement",description=f"{i.user.mention} semble avoir rencontré Truck-kun et non Hu Tao. Sa réincarnation en Limule sur le {ctx.guild.name} est désormais possible !",color= 0xFFFFFF)
+            if reason!=None:
+                em.add_field(name="Raison du débannissement :",value=f"*{reason}*",inline=False)
+            em.set_image(url="https://media.discordapp.net/attachments/900869947050295336/902303710686887936/that-time-i-got-reincarnated-as-a-slime-rimuru.gif")
+            em.set_footer(text="Bon retour parmi nous, jeune slime !")
+            await ctx.send(embed=em)
+            try:
+                await i.user.send(embed=em)
+            except Forbidden:
+                return
 @unban.error
 async def unban_error(ctx,error):
-    if isinstance(error, commands.MissingPermissions):
+    if isinstance(error,commands.MissingPermissions):
         await ctx.send("N'essaye pas d'outre-passer la hiérarchie pour invoquer des camions.")
 @trombot.command()
 @commands.has_permissions(manage_roles=True)
-async def unmute(ctx,member: discord.Member,*,reason=None):
+async def mute(ctx,time,member:discord.Member=None,*,reason=None):
+    if member==None:
+        await ctx.send("TU VEUX MUTE QUI MÊME !?")
+    else:
+        if not reason:
+            reason="Pas de raison indiquée"
+        guild=ctx.guild
+        mutedRole=discord.utils.get(guild.roles,name="Muted")
+        if not mutedRole:
+            await guild.create_role(name="Muted")
+            for channel in guild.channels:
+                await channel.set_permissions(mutedRole,speak=False,send_messages=False,add_reactions=False)
+        else:
+            for channel in guild.channels:
+                await channel.set_permissions(mutedRole,speak=False,send_messages=False,add_reactions=False)
+        try:
+            if mutedRole in member.roles:
+                await ctx.send(f"IL EST DÉJÀ MUTE !",delete_after=5)
+                return
+        except KeyError:
+            pass
+        if time!="indéfini":
+            temp=convert(time)
+            await member.add_roles(mutedRole,reason=reason)
+            await ctx.send(f"La différence entre Paimon et {member.mention} c'est qu'on ne peut pas mute Paimon \nBon mute de {time} !")
+            await ctx.send("https://tenor.com/view/genshin-impact-paimon-gif-18640817",delete_after=5)
+            await member.send(f"**{ctx.message.author.name}** t'as rendu muet sur le {ctx.guild.name} pour la raison suivante : *{reason}*")
+            await asyncio.sleep(temp)
+            await member.remove_roles(mutedRole)
+            await member.send(f"Ton mute sur le {ctx.guild.name} est fini !")
+        else:
+            await member.add_roles(mutedRole,reason=reason)
+            await ctx.send(f"La différence entre Paimon et {member.mention} c'est qu'on ne peut pas mute Paimon \nBon mute d'une durée indéfinie !")
+            await ctx.send("https://tenor.com/view/genshin-impact-paimon-gif-18640817",delete_after=5)
+            await member.send(f"**{ctx.message.author.name}** t'as rendu muet sur le {ctx.guild.name} pour la raison suivante : *{reason}*")
+@mute.error
+async def mute_error(ctx,error):
+    if isinstance(error,commands.MissingPermissions):
+        await ctx.send("À vouloir faire le malin c'est toi tu vas finir mute !")
+@trombot.command()
+@commands.has_permissions(manage_roles=True)
+async def unmute(ctx,member:discord.Member,*,reason=None):
     mutedRole = discord.utils.get(ctx.guild.roles, name="Muted")
     if mutedRole not in member.roles:
         await ctx.send("ON REND PAS LA PAROLE À QUELQU'UN QUI L'A DÉJÀ !",delete_after=5)
@@ -322,7 +404,7 @@ async def unmute(ctx,member: discord.Member,*,reason=None):
     await member.remove_roles(mutedRole,reason=reason)
     await ctx.send(f"Contrairement à Komi, {member.mention} arrive à parler.")
     await ctx.send("https://tenor.com/view/komi-san-komi-shouko-komi-shouko-comi-san-gif-23086846",delete_after=5)
-    await member.send(f"**{ctx.message.author.name}** t'as démute sur le {ctx.guild.name} pour la raison suivante : {reason}")
+    await member.send(f"**{ctx.message.author.name}** t'as démute sur le {ctx.guild.name} pour la raison suivante : *{reason}*")
 @unmute.error
 async def unmute_error(ctx,error):
     if isinstance(error,commands.MissingPermissions):
