@@ -1,0 +1,65 @@
+time_regex=re.compile("(?:(\d{1,5})(h|s|m|min|d))+?")
+time_dict={"h":3600,"s":1,"m":60,"min":60,"d":86400}
+class TimeConverter(commands.Converter):
+    async def convert(self,arg):
+        args=arg.lower()
+        matches=re.findall(time_regex,args)
+        time=0
+        for key,value in matches:
+            try:
+                time+=time_dict[value]*float(key)
+            except KeyError:
+                raise commands.BadArgument(f"D'où {value} c'est un indicateur de temps valide !? Réessaye avec s/m/min/h/d au lieu de faire le mariole !")
+            except ValueError:
+                raise commands.BadArgument(f"{key} C'EST MÊME PAS UN NOMBRE !")
+        return round(time)
+class BannedUser(Converter):
+    async def convert(self,ctx,arg):
+        if ctx.guild.me.guild_permissions.ban_members:
+            if arg.isdigit():
+                try:
+                    return (await ctx.guild.fetch_ban(Object(id=int(arg)))).user
+                except NotFound:
+                    raise BadArgument
+        banned=[e.user for e in await ctx.guild.bans()]
+        if banned:
+            if (user:=search(lambda u: str(u)==arg,banned)) is not None:
+                return user
+            else:
+                raise BadArgument
+                
+@trombot.command()
+@commands.has_permissions(manage_roles=True)
+async def mute(ctx,member:discord.Member,time:TimeConverter=None,reason=None):
+    if not member:
+        await ctx.send("TU VEUX MUTE QUI MÊME !?")
+    else:
+        if not reason:
+            reason="Pas de raison indiquée"
+        guild = ctx.guild
+        mutedRole = discord.utils.get(guild.roles, name="Muted")
+        if not mutedRole:
+            mutedRole = await guild.create_role(name="Muted")
+            for channel in guild.channels:
+                await channel.set_permissions(mutedRole, speak=False, send_messages=False, read_message_history=True)
+        try:
+            if mutedRole in member.roles:
+                await ctx.send(f"IL EST DÉJÀ MUTE **{member.display_name}** !",delete_after=5)
+                return
+        except KeyError:
+            pass
+        await member.add_roles(mutedRole, reason=reason)
+        if not time:
+            await ctx.send(f"La différence entre Paimon et {member.mention} c'est qu'on ne peut pas mute Paimon")
+            await ctx.send("https://tenor.com/view/genshin-impact-paimon-gif-18640817",delete_after=5)
+        else:
+            await ctx.send(f"La différence entre Paimon et {member.mention} c'est qu'on ne peut pas mute Paimon \n Bon mute de {time} !")
+            await ctx.send("https://tenor.com/view/genshin-impact-paimon-gif-18640817",delete_after=5)
+        await member.send(f"**{ctx.message.author.name}** t'as rendu muet sur le {ctx.guild.name} pour la raison suivante : {reason}")
+        if time and time<300:
+            await asyncio.sleep(time)
+            if mutedRole in member.roles:
+                await member.remove_roles(mutedRole)
+                await member.send(f"Ton mute sur le {ctx.guild.name} est fini !")
+            else:
+                return
